@@ -10,6 +10,7 @@ use Closure;
  */
 class Cache
 {
+
 	static $adapter = null;
 	static $options = array();
 
@@ -24,13 +25,13 @@ class Cache
 	 * a shared key/store (for instance a shared Memcached db)
 	 *
 	 * Ex:
-	 * $cfg_ar = ActiveRecord\Config::instance();
-	 * $cfg_ar->set_cache('memcache://localhost:11211',array('namespace' => 'my_cool_app',
+	 * $cfg = ActiveRecord\Config::instance();
+	 * $cfg->setCache('memcache://localhost:11211',array('namespace' => 'myCooApp',
 	 *																											 'expire'		 => 120
 	 *																											 ));
 	 *
 	 * In the example above all the keys expire after 120 seconds, and the
-	 * all get a postfix 'my_cool_app'.
+	 * all get a postfix 'myCoolApp'.
 	 *
 	 * (Note: expiring needs to be implemented in your cache store.)
 	 *
@@ -61,7 +62,7 @@ class Cache
 
 	public static function get($key, $closure)
 	{
-		$key = static::get_namespace() . $key;
+		$key = static::getNamespace() . $key;
 		
 		if (!static::$adapter)
 			return $closure();
@@ -72,7 +73,7 @@ class Cache
 		return $value;
 	}
 
-	private static function get_namespace()
+	private static function getNamespace()
 	{
 		return (isset(static::$options['namespace']) && strlen(static::$options['namespace']) > 0) ? (static::$options['namespace'] . "::") : "";
 	}

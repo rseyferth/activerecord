@@ -13,36 +13,36 @@ use Closure;
  *
  * Valid callbacks are:
  * <ul>
- * <li><b>after_construct:</b> called after a model has been constructed</li>
- * <li><b>before_save:</b> called before a model is saved</li>
- * <li><b>after_save:</b> called after a model is saved</li>
- * <li><b>before_create:</b> called before a NEW model is to be inserted into the database</li>
- * <li><b>after_create:</b> called after a NEW model has been inserted into the database</li>
- * <li><b>before_update:</b> called before an existing model has been saved</li>
- * <li><b>after_update:</b> called after an existing model has been saved</li>
- * <li><b>before_validation:</b> called before running validators</li>
- * <li><b>after_validation:</b> called after running validators</li>
- * <li><b>before_validation_on_create:</b> called before validation on a NEW model being inserted</li>
- * <li><b>after_validation_on_create:</b> called after validation on a NEW model being inserted</li>
- * <li><b>before_validation_on_update:</b> see above except for an existing model being saved</li>
- * <li><b>after_validation_on_update:</b> ...</li>
- * <li><b>before_destroy:</b> called after a model has been deleted</li>
- * <li><b>after_destroy:</b> called after a model has been deleted</li>
+ * <li><b>afterConstruct:</b> called after a model has been constructed</li>
+ * <li><b>beforeSave:</b> called before a model is saved</li>
+ * <li><b>afterSave:</b> called after a model is saved</li>
+ * <li><b>beforeCreate:</b> called before a NEW model is to be inserted into the database</li>
+ * <li><b>afterCreate:</b> called after a NEW model has been inserted into the database</li>
+ * <li><b>beforeUpdate:</b> called before an existing model has been saved</li>
+ * <li><b>afterUpdate:</b> called after an existing model has been saved</li>
+ * <li><b>beforeValidation:</b> called before running validators</li>
+ * <li><b>afterValidation:</b> called after running validators</li>
+ * <li><b>beforeValidation_on_create:</b> called before validation on a NEW model being inserted</li>
+ * <li><b>afterValidation_on_create:</b> called after validation on a NEW model being inserted</li>
+ * <li><b>beforeValidation_on_update:</b> see above except for an existing model being saved</li>
+ * <li><b>afterValidation_on_update:</b> ...</li>
+ * <li><b>beforeDestroy:</b> called after a model has been deleted</li>
+ * <li><b>afterDestroy:</b> called after a model has been deleted</li>
  * </ul>
  *
  * This class isn't meant to be used directly. Callbacks are defined on your model like the example below:
  *
  * <code>
  * class Person extends ActiveRecord\Model {
- *   static $before_save = array('make_name_uppercase');
- *   static $after_save = array('do_happy_dance');
+ *   static $beforeSave = array('makeNameUppercase');
+ *   static $afterSave = array('doHappyDance');
  *
- *   public function make_name_uppercase() {
+ *   public function makeNameUppercase() {
  *     $this->name = strtoupper($this->name);
  *   }
  *
- *   public function do_happy_dance() {
- *     happy_dance();
+ *   public function doHappyDance() {
+ *     happyDance();
  *   }
  * }
  * </code>
@@ -63,22 +63,22 @@ class CallBack
 	 *
 	 * @var array
 	 */
-	static protected $VALID_CALLBACKS = array(
-		'after_construct',
-		'before_save',
-		'after_save',
-		'before_create',
-		'after_create',
-		'before_update',
-		'after_update',
-		'before_validation',
-		'after_validation',
-		'before_validation_on_create',
-		'after_validation_on_create',
-		'before_validation_on_update',
-		'after_validation_on_update',
-		'before_destroy',
-		'after_destroy'
+	static protected $validCallbacks = array(
+		'afterConstruct',
+		'beforeSave',
+		'afterSave',
+		'beforeCreate',
+		'afterCreate',
+		'beforeUpdate',
+		'afterUpdate',
+		'beforeValidation',
+		'afterValidation',
+		'beforeValidationOnCreate',
+		'afterValidationOnCreate',
+		'beforeValidationOnUpdate',
+		'afterValidationOnUpdate',
+		'beforeDestroy',
+		'afterDestroy'
 	);
 
 	/**
@@ -104,40 +104,47 @@ class CallBack
 	/**
 	 * Creates a CallBack.
 	 *
-	 * @param string $model_class_name The name of a {@link Model} class
+	 * @param string 	The name of a {@link Model} class
 	 * @return CallBack
 	 */
-	public function __construct($model_class_name)
+	public function __construct($modelClassName)
 	{
-		$this->klass = Reflections::instance()->get($model_class_name);
 
-		foreach (static::$VALID_CALLBACKS as $name)
+		// Lookup the model class
+		$this->klass = Reflections::instance()->get($modelClassName);
+
+		// Loop through valid callbacks
+		foreach (static::$validCallbacks as $name)
 		{
 			// look for explicitly defined static callback
-			if (($definition = $this->klass->getStaticPropertyValue($name,null)))
-			{
-				if (!is_array($definition))
-					$definition = array($definition);
+			if (($definition = $this->klass->getStaticPropertyValue($name,null))) {
 
-				foreach ($definition as $method_name)
-					$this->register($name,$method_name);
+				// Wrapped in array?
+				if (!is_array($definition))	$definition = array($definition);
+
+				// Loop through definitions and register the callback
+				foreach ($definition as $method_name) {
+					$this->register($name, $method_name);
+				}
+
 			}
 
 			// implicit callbacks that don't need to have a static definition
 			// simply define a method named the same as something in $VALID_CALLBACKS
 			// and the callback is auto-registered
-			elseif ($this->klass->hasMethod($name))
-				$this->register($name,$name);
+			elseif ($this->klass->hasMethod($name)) {
+				$this->register($name, $name);
+			}
 		}
 	}
 
 	/**
 	 * Returns all the callbacks registered for a callback type.
 	 *
-	 * @param $name string Name of a callback (see {@link VALID_CALLBACKS $VALID_CALLBACKS})
-	 * @return array array of callbacks or null if invalid callback name.
+	 * @param string 	Name of a callback (see $validCallbacks)
+	 * @return array 	Array of callbacks or null if invalid callback name.
 	 */
-	public function get_callbacks($name)
+	public function getCallbacks($name)
 	{
 		return isset($this->registry[$name]) ? $this->registry[$name] : null;
 	}
@@ -149,28 +156,32 @@ class CallBack
 	 * model object. For (after|before)_(create|update) callbacks, it will merge with
 	 * a generic 'save' callback which is called first for the lease amount of precision.
 	 *
-	 * @param string $model Model to invoke the callback on.
-	 * @param string $name Name of the callback to invoke
-	 * @param boolean $must_exist Set to true to raise an exception if the callback does not exist.
+	 * @param string 	Model to invoke the callback on.
+	 * @param string  	Name of the callback to invoke
+	 * @param boolean  	Set to true to raise an exception if the callback does not exist.
 	 * @return mixed null if $name was not a valid callback type or false if a method was invoked
 	 * that was for a before_* callback and that method returned false. If this happens, execution
 	 * of any other callbacks after the offending callback will not occur.
 	 */
-	public function invoke($model, $name, $must_exist=true)
+	public function invoke($model, $name, $mustExist=true)
 	{
-		if ($must_exist && !array_key_exists($name, $this->registry))
+
+		// Check if callback exists
+		if ($must_exist && !array_key_exists($name, $this->registry)) {
 			throw new ActiveRecordException("No callbacks were defined for: $name on " . get_class($model));
+		}
 
-		// if it doesn't exist it might be a /(after|before)_(create|update)/ so we still need to run the save
-		// callback
-		if (!array_key_exists($name, $this->registry))
+		// if it doesn't exist it might be a /(after|before)_(create|update)/ so we still need to run the Save callback
+		if (!array_key_exists($name, $this->registry)) {
 			$registry = array();
-		else
+		} else {
 			$registry = $this->registry[$name];
+		}
 
-		$first = substr($name,0,6);
-
+		//@TODO: Make this work with the new names, and a preg_match...
+		//
 		// starts with /(after|before)_(create|update)/
+		// 
 		if (($first == 'after_' || $first == 'before') && (($second = substr($name,7,5)) == 'creat' || $second == 'updat' || $second == 'reate' || $second == 'pdate'))
 		{
 			$temporal_save = str_replace(array('create', 'update'), 'save', $name);
@@ -202,51 +213,70 @@ class CallBack
 	 * <li><b>prepend:</b> Add this callback at the beginning of the existing callbacks (true) or at the end (false, default)</li>
 	 * </ul>
 	 *
-	 * @param string $name Name of callback type (see {@link VALID_CALLBACKS $VALID_CALLBACKS})
-	 * @param mixed $closure_or_method_name Either a closure or the name of a method on the {@link Model}
-	 * @param array $options Options array
+	 * @param string  	Name of callback type (see $validCallbacks)
+	 * @param mixed  	Either a closure or the name of a method on the {@link Model}
+	 * @param array  	Options array
 	 * @return void
 	 * @throws ActiveRecordException if invalid callback type or callback method was not found
 	 */
-	public function register($name, $closure_or_method_name=null, $options=array())
+	public function register($name, $closure = null, $options = array())
 	{
-		$options = array_merge(array('prepend' => false), $options);
 
-		if (!$closure_or_method_name)
-			$closure_or_method_name = $name;
+		// Set default options
+		$options = array_merge(array(
+			'prepend' => false)
+		, $options);
 
-		if (!in_array($name,self::$VALID_CALLBACKS))
+		// No method given?
+		if (!$closure_or_method_name) {
+
+			// Use the name instead
+			$closure = $name;
+		}
+
+		// Not valid?
+		if (!in_array($name,self::$validCallbacks)) {
 			throw new ActiveRecordException("Invalid callback: $name");
+		}
 
-		if (!($closure_or_method_name instanceof Closure))
+		// Is it a method?
+		if (!($closure instanceof Closure))
 		{
-			if (!isset($this->publicMethods))
-				$this->publicMethods = get_class_methods($this->klass->getName());
 
-			if (!in_array($closure_or_method_name, $this->publicMethods))
-			{
-				if ($this->klass->hasMethod($closure_or_method_name))
-				{
+			// Load class its public methods
+			if (!isset($this->publicMethods)) {
+				$this->publicMethods = get_class_methods($this->klass->getName());
+			}
+
+			// Is there no public method by that name?
+			if (!in_array($closure, $this->publicMethods)) {
+
+				// Was the method private?
+				if ($this->klass->hasMethod($closure)) {
+
 					// Method is private or protected
 					throw new ActiveRecordException("Callback methods need to be public (or anonymous closures). " .
-						"Please change the visibility of " . $this->klass->getName() . "->" . $closure_or_method_name . "()");
-				}
-				else
-				{
-					// i'm a dirty ruby programmer
+						"Please change the visibility of " . $this->klass->getName() . "->" . $closure . "()");
+
+				} else {
+
+					// Just a non-existing method				
 					throw new ActiveRecordException("Unknown method for callback: $name" .
-						(is_string($closure_or_method_name) ? ": #$closure_or_method_name" : ""));
+						(is_string($closure) ? ": #$closure" : ""));
+
 				}
 			}
 		}
 
-		if (!isset($this->registry[$name]))
+		// Add method/closure to the registry
+		if (!isset($this->registry[$name])) {
 			$this->registry[$name] = array();
-
-		if ($options['prepend'])
-			array_unshift($this->registry[$name], $closure_or_method_name);
-		else
-			$this->registry[$name][] = $closure_or_method_name;
+		}
+		if ($options['prepend']) {
+			array_unshift($this->registry[$name], $closure);
+		} else {
+			$this->registry[$name][] = $closure;
+		}
 	}
 }
 ?>
