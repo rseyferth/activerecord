@@ -1,0 +1,13 @@
+{
+    "name": "wipkip/activerecord",
+    "type": "library",
+    "description": "PHP ORM library based on Rails ActiveRecord and php-activerecord.",
+    "keywords": ["activerecord", "orm", "chickenwire"],
+    "license": "MIT",
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "files": [ "ActiveRecord.php" ]
+    }
+}
