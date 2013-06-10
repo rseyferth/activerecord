@@ -12,7 +12,8 @@
 			"acceptance" => "AcceptanceValidator",
 			"uniqueness" => "UniquenessValidator",
 			"confirmation" => "ConfirmationValidator",
-			"inclusion" => "InclusionValidator"
+			"inclusion" => "InclusionValidator",
+			"numericality" => "NumericalityValidator"
 		);
 
 		// Array of Validator instances

@@ -24,11 +24,11 @@
 		public function validate($field, $model) 
 		{
 
-			return $this->_validate($field, $model);
+			return $this->_validate($this->getValue($model, $field), $field, $model);
 
 		}
 
-		abstract protected function _validate($field, $model);
+		abstract protected function _validate($value, $field, $model);
 
 
 		protected function getValue($model, $field) {
@@ -54,11 +54,8 @@
 		}
 
 		
-		protected function _validate($field, $model)
+		protected function _validate($value, $field, $model)
 		{
-
-			// Even in there?
-			$value = $this->getValue($model, $field);
 
 			// Value is null?
 			if (is_null($value)) return 'presence';
@@ -137,11 +134,8 @@
 		}
 
 
-		protected function _validate($field, $model)
+		protected function _validate($value, $field, $model)
 		{
-
-			// Even in there?
-			$value = $this->getValue($model, $field);
 
 			// Run the regex
 			if (preg_match($this->_format, $value)) {
@@ -250,11 +244,8 @@
 
 		}
 
-		protected function _validate($field, $model)
+		protected function _validate($value, $field, $model)
 		{
-
-			// Get the value
-			$value = $this->getValue($model, $field);
 
 			// is null?
 			if (is_null($value)) {
@@ -360,11 +351,8 @@
 
 		}
 
-		protected function _validate($field, $model)
+		protected function _validate($value, $field, $model)
 		{
-
-			// Get value
-			$value = $this->getValue($model, $field);
 
 			// Same?
 			return $value === $this->_accept ? true : "acceptance";
@@ -438,11 +426,8 @@
 
 		}
 
-		protected function _validate($field, $model)
+		protected function _validate($value, $field, $model)
 		{
-
-			// Get value
-			$value = $this->getValue($model, $field);
 
 			// Check field name
 			if (is_null($this->_field)) {
@@ -490,7 +475,7 @@
 		{
 
 			// A string?
-			if ($options) {
+			if (is_string($options)) {
 
 				// Just the one option...
 				$this->_in = array($options);
@@ -499,15 +484,164 @@
 			}
 
 			// Does the array have keys?
-			
+			if (\ChickenTools\Arry::isHash($options)) {
+
+				// In given?
+				if (!array_key_exists("in", $options)) {
+					throw new \Exception("The InclusionValidator needs an 'in' parameter.", 1);					
+				}
+				$this->_in = $options['in'];
+
+			} else {
+
+				// Use array as values
+				$this->_in = $options;
+
+			}
+
 
 
 		}
 
-		protected function _validate($field, $model)
+		protected function _validate($value, $field, $model)
 		{
 
+			// Value in the array?
+			return (in_array($value, $this->_in)) ? true : "inclusion";
 
+		}
+
+
+
+	}
+
+	/**
+	 * static $validates = array(
+	 * 		"points" => "numericality"
+	 * 		"points" => array("numericality")
+	 * 		"points" => array("numericality" => true)
+	 * 		"points" => array(
+	 * 			"numericality" => array(
+	 * 				"onlyInteger" => true,
+	 * 				"greaterThan" => 100,
+	 * 				"greaterThanOrEqualTo" => 99,
+	 * 				"equalTo" => 10,
+	 * 				"lessThan" => 100,
+	 * 				"lessThanOrEqualTo" => 99,
+	 * 				"odd" => true,
+	 * 				"even" => true
+	 * 			)
+	 * 		)
+	 * 		"points" => array(
+	 * 			"numericality" => "odd"
+	 * 		)
+	 * 		"points" => array(
+	 * 			"numericality" => "even"
+	 * 		)
+	 * );
+	 */
+	class NumericalityValidator extends Validator
+	{
+
+		private $_onlyInt;
+		private $_gt;
+		private $_lt;
+		private $_equal;
+		private $_gte;
+		private $_lte;
+		private $_odd;
+		private $_even;
+
+
+		protected function _setOptions($options)
+		{
+
+			// Default options
+			$this->_onlyInt = false;
+			$this->_gt = null;
+			$this->_lt = null;
+			$this->_equal = null;
+			$this->_gte = null;
+			$this->_lte = null;
+			$this->_odd = null;
+			$this->_even = null;
+
+			// Just true?
+			if ($options === true) return;
+
+			// String given?
+			if (is_string($options)) {
+
+				// Odd?
+				if ($options == 'odd') {
+					$this->_odd = true;
+				} elseif ($options == 'even') {
+					$this->_even = true;
+				} else {
+					throw new \Exception("The NumericalityValidator only accepts the string parameters 'odd' and 'even'.", 1);					
+				}
+				return;
+
+			}
+
+			// Array?
+			if (is_array($options)) {
+
+				// True settings
+				if (array_key_exists("onlyInteger", $options) || in_array("onlyInteger", $options)) { $this->_onlyInt = true; }
+				if (array_key_exists("odd", $options) || in_array("odd", $options)) { $this->_odd = true; }
+				if (array_key_exists("even", $options) || in_array("even", $options)) { $this->_even = true; }
+				
+				// Greater thans
+				if (array_key_exists("equalTo", $options)) { $this->_equal = $options['equalTo']; }
+				if (array_key_exists("greaterThan", $options)) { $this->_gt = $options['greaterThan']; }
+				if (array_key_exists("greaterThanOrEqualTo", $options)) { $this->_gte = $options['greaterThanOrEqualTo']; }
+				if (array_key_exists("lessThan", $options)) { $this->_lt = $options['lessThan']; }
+				if (array_key_exists("lessThanOrEqualTo", $options)) { $this->_lte = $options['lessThanOrEqualTo']; }
+
+				return;
+
+			}
+			throw new \Exception("Invalid setting of the NumericalityValidator", 1);
+
+		}
+
+		protected function _validate($value, $field, $model)
+		{
+
+			// Is it a number?
+			if (!is_numeric($value)) {
+				return "numericality.numeric";
+			}
+
+			// Just int?
+			if ($this->_onlyInt && intval($value) != $value) {
+				return "numericality.integer";
+			}
+
+			// Greater than?
+			if ($this->_gt && $value <= $this->_gt) return "numericality.greaterThan(" . $this->_gt . ")";
+			if ($this->_gte && $value < $this->_gte) return "numericality.greaterThanOrEqualTo(" . $this->_gte . ")";
+
+			// Less than?
+			if ($this->_lt && $value >= $this->_lt) return "numericality.lessThan(" . $this->_lt . ")";
+			if ($this->_lte && $value > $this->_lte) return "numericality.lessThanOrEqualTo(" . $this->_lte . ")";
+		
+			// Equal?
+			if ($this->_equal && $value != $this->_equal) return "numericality.equalTo(" . $this->_equal . ")";
+
+			// Odd?
+			if ($this->_odd && $value % 2 != 1) {
+				return "numericality.odd";
+			}
+
+			// Even?
+			if ($this->_even && $value % 2 != 0) {
+				return "numericality.even";
+			}
+
+			// No faults found
+			return true;
 
 		}
 
@@ -528,7 +662,7 @@
 
 		}
 
-		protected function _validate($field, $model)
+		protected function _validate($value, $field, $model)
 		{
 
 
