@@ -167,7 +167,7 @@ class CallBack
 	{
 
 		// Check if callback exists
-		if ($must_exist && !array_key_exists($name, $this->registry)) {
+		if ($mustExist && !array_key_exists($name, $this->registry)) {
 			throw new ActiveRecordException("No callbacks were defined for: $name on " . get_class($model));
 		}
 
@@ -182,15 +182,18 @@ class CallBack
 		//
 		// starts with /(after|before)_(create|update)/
 		// 
-		if (($first == 'after_' || $first == 'before') && (($second = substr($name,7,5)) == 'creat' || $second == 'updat' || $second == 'reate' || $second == 'pdate'))
+		if (preg_match('/^(?<when>after|before)(?<action>Create|Update)$/', $name, $matches))
 		{
-			$temporal_save = str_replace(array('create', 'update'), 'save', $name);
 
-			if (!isset($this->registry[$temporal_save]))
-				$this->registry[$temporal_save] = array();
+			// Replace action with Save
+			$temporalSave = $matches['when'] . "Save";
 
-			$registry = array_merge($this->registry[$temporal_save], $registry ? $registry : array());
+			if (!isset($this->registry[$temporalSave]))
+				$this->registry[$temporalSave] = array();
+
+			$registry = array_merge($this->registry[$temporalSave], $registry ? $registry : array());
 		}
+		
 
 		if ($registry)
 		{
@@ -228,7 +231,7 @@ class CallBack
 		, $options);
 
 		// No method given?
-		if (!$closure_or_method_name) {
+		if (!$closure) {
 
 			// Use the name instead
 			$closure = $name;

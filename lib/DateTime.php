@@ -62,12 +62,12 @@ class DateTime extends \DateTime
 		'w3c'     => \DateTime::W3C);
 
 	private $model;
-	private $attribute_name;
+	private $attributeName;
 
-	public function attribute_of($model, $attribute_name)
+	public function attributeOf($model, $attributeName)
 	{
 		$this->model = $model;
-		$this->attribute_name = $attribute_name;
+		$this->attributeName = $attributeName;
 	}
 
 	/**
@@ -86,7 +86,7 @@ class DateTime extends \DateTime
 	 */
 	public function format($format=null)
 	{
-		return parent::format(self::get_format($format));
+		return parent::format(self::getFormat($format));
 	}
 
 	/**
@@ -99,7 +99,7 @@ class DateTime extends \DateTime
 	 * @param string $format A pre-defined string format or a raw format string
 	 * @return string a format string
 	 */
-	public static function get_format($format=null)
+	public static function getFormat($format=null)
 	{
 		// use default format if no format specified
 		if (!$format)
@@ -118,33 +118,33 @@ class DateTime extends \DateTime
 		return $this->format();
 	}
 
-	private function flag_dirty()
+	private function flagDirty()
 	{
 		if ($this->model)
-			$this->model->flag_dirty($this->attribute_name);
+			$this->model->flagDirty($this->attributeName);
 	}
 
 	public function setDate($year, $month, $day)
 	{
-		$this->flag_dirty();
+		$this->flagDirty();
 		call_user_func_array(array($this,'parent::setDate'),func_get_args());
 	}
 
 	public function setISODate($year, $week , $day=null)
 	{
-		$this->flag_dirty();
+		$this->flagDirty();
 		call_user_func_array(array($this,'parent::setISODate'),func_get_args());
 	}
 
 	public function setTime($hour, $minute, $second=null)
 	{
-		$this->flag_dirty();
+		$this->flagDirty();
 		call_user_func_array(array($this,'parent::setTime'),func_get_args());
 	}
 
 	public function setTimestamp($unixtimestamp)
 	{
-		$this->flag_dirty();
+		$this->flagDirty();
 		call_user_func_array(array($this,'parent::setTimestamp'),func_get_args());
 	}
 }

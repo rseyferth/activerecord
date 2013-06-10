@@ -14,7 +14,7 @@
 	// Load main libraries
 	require __DIR__.'/lib/Singleton.php';
 	require __DIR__.'/lib/Config.php';
-	require __DIR__.'/lib/Utils.php';
+//	require __DIR__.'/lib/Utils.php';
 	require __DIR__.'/lib/DateTime.php';
 	require __DIR__.'/lib/Model.php';
 	require __DIR__.'/lib/Table.php';
@@ -44,8 +44,8 @@
 		$path = ActiveRecord\Config::instance()->getModelDirectory();
 		$root = realpath(isset($path) ? $path : '.');
 
-		
-		if (($namespaces = ActiveRecord\getNamespaces($className)))
+
+		if (($namespaces = \ChickenTools\Str::getNamespaces($className)))
 		{
 			$className = array_pop($namespaces);
 			$directories = array();

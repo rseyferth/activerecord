@@ -1,0 +1,105 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
+    ],
+    "hash": "7a6220ca456506774db52f70af8c397f",
+    "packages": [
+        {
+            "name": "ikimea/browser",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Ikimea/Browser.git",
+                "reference": "778b9f7d0453f10894c5a31316d17f037a21139b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Ikimea/Browser/zipball/778b9f7d0453f10894c5a31316d17f037a21139b",
+                "reference": "778b9f7d0453f10894c5a31316d17f037a21139b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Ikimea\\Browser\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL"
+            ],
+            "authors": [
+                {
+                    "name": "Ikimea",
+                    "homepage": "http://www.ikimea.com"
+                },
+                {
+                    "name": "Chris Schuld",
+                    "homepage": "http://chrisschuld.com"
+                },
+                {
+                    "name": "Gary White",
+                    "homepage": "http://www.apptools.com/phptools/browser/"
+                }
+            ],
+            "description": "Detecting the user’s browser",
+            "homepage": "http://www.ikimea.com",
+            "keywords": [
+                "browser"
+            ],
+            "time": "2013-03-27 23:23:09"
+        },
+        {
+            "name": "wipkip/chickentools",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/rseyferth/chickentools.git",
+                "reference": "b83beccf4db5163964f4ece04c44a89ee8b42b1f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/rseyferth/chickentools/zipball/b83beccf4db5163964f4ece04c44a89ee8b42b1f",
+                "reference": "b83beccf4db5163964f4ece04c44a89ee8b42b1f",
+                "shasum": ""
+            },
+            "require": {
+                "ikimea/browser": "dev-master",
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ruben Seyferth",
+                    "email": "ruben.seyferth@gmail.com"
+                }
+            ],
+            "description": "Some easy to use PHP utilities.",
+            "time": "2013-06-06 16:18:26"
+        }
+    ],
+    "packages-dev": [
+
+    ],
+    "aliases": [
+
+    ],
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "wipkip/chickentools": 20
+    },
+    "platform": {
+        "php": ">=5.3.0"
+    },
+    "platform-dev": [
+
+    ]
+}

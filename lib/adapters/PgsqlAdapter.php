@@ -14,19 +14,19 @@ class PgsqlAdapter extends Connection
 	static $QUOTE_CHARACTER = '"';
 	static $DEFAULT_PORT = 5432;
 
-	public function supports_sequences()
+	public function supportsSequences()
 	{
 		return true;
 	}
 
-	public function get_sequence_name($table, $column_name)
+	public function getSequenceName($table, $columnName)
 	{
-		return "{$table}_{$column_name}_seq";
+		return "{$table}_{$columnName}_seq";
 	}
 
-	public function next_sequence_value($sequence_name)
+	public function nextSequenceValue($sequenceName)
 	{
-		return "nextval('" . str_replace("'","\\'",$sequence_name) . "')";
+		return "nextval('" . str_replace("'","\\'", $sequenceName) . "')";
 	}
 
 	public function limit($sql, $offset, $limit)
@@ -34,7 +34,7 @@ class PgsqlAdapter extends Connection
 		return $sql . ' LIMIT ' . intval($limit) . ' OFFSET ' . intval($offset);
 	}
 
-	public function query_column_info($table)
+	public function queryColumnInfo($table)
 	{
 		$sql = <<<SQL
 SELECT
@@ -64,28 +64,28 @@ SQL;
 		return $this->query($sql,$values);
 	}
 
-	public function query_for_tables()
+	public function queryForTables()
 	{
 		return $this->query("SELECT tablename FROM pg_tables WHERE schemaname NOT IN('information_schema','pg_catalog')");
 	}
 
-	public function create_column(&$column)
+	public function createColumn(&$column)
 	{
 		$c = new Column();
-		$c->inflected_name	= Inflector::instance()->variablize($column['field']);
+		$c->inflectedName	= Inflector::instance()->variablize($column['field']);
 		$c->name			= $column['field'];
 		$c->nullable		= ($column['not_nullable'] ? false : true);
 		$c->pk				= ($column['pk'] ? true : false);
-		$c->auto_increment	= false;
+		$c->autoIncrement	= false;
 
 		if (substr($column['type'],0,9) == 'timestamp')
 		{
-			$c->raw_type = 'datetime';
+			$c->rawType = 'datetime';
 			$c->length = 19;
 		}
 		elseif ($column['type'] == 'date')
 		{
-			$c->raw_type = 'date';
+			$c->rawType = 'date';
 			$c->length = 10;
 		}
 		else
@@ -99,7 +99,7 @@ SQL;
 				$c->length = null;
 		}
 
-		$c->map_raw_type();
+		$c->mapRawType();
 
 		if ($column['default'])
 		{
@@ -113,12 +113,12 @@ SQL;
 		return $c;
 	}
 
-	public function set_encoding($charset)
+	public function setEncoding($charset)
 	{
 		$this->query("SET NAMES '$charset'");
 	}
 
-	public function native_database_types()
+	public function nativeDatabaseTypes()
 	{
 		return array(
 			'primary_key' => 'serial primary key',

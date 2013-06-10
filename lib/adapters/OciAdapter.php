@@ -28,32 +28,32 @@ class OciAdapter extends Connection
 		}
 	}
 
-	public function supports_sequences() { return true; }
+	public function supportsSequences() { return true; }
 	
-	public function get_next_sequence_value($sequence_name)
+	public function getNextSequenceValue($sequence_name)
 	{
-		return $this->query_and_fetch_one('SELECT ' . $this->next_sequence_value($sequence_name) . ' FROM dual');
+		return $this->queryAndFetchOne('SELECT ' . $this->nextSequenceValue($sequence_name) . ' FROM dual');
 	}
 
-	public function next_sequence_value($sequence_name)
+	public function nextSequenceValue($sequence_name)
 	{
 		return "$sequence_name.nextval";
 	}
 
-	public function date_to_string($datetime)
+	public function dateToString($datetime)
 	{
 		return $datetime->format('d-M-Y');
 	}
 
-	public function datetime_to_string($datetime)
+	public function dateTimeToString($datetime)
 	{
 		return $datetime->format('d-M-Y h:i:s A');
 	}
 
 	// $string = DD-MON-YYYY HH12:MI:SS(\.[0-9]+) AM
-	public function string_to_datetime($string)
+	public function stringToDateTime($string)
 	{
-		return parent::string_to_datetime(str_replace('.000000','',$string));
+		return parent::stringToDateTime(str_replace('.000000','',$string));
 	}
 
 	public function limit($sql, $offset, $limit)
@@ -65,7 +65,7 @@ class OciAdapter extends Connection
 			"WHERE rownum <= $stop) WHERE ar_rnum__ > $offset";
 	}
 
-	public function query_column_info($table)
+	public function queryColumnInfo($table)
 	{
 		$sql = 
 			"SELECT c.column_name, c.data_type, c.data_length, c.data_scale, c.data_default, c.nullable, " .
@@ -82,12 +82,12 @@ class OciAdapter extends Connection
 		return $this->query($sql,$values);
 	}
 
-	public function query_for_tables()
+	public function queryForTables()
 	{
 		return $this->query("SELECT table_name FROM user_tables");
 	}
 
-	public function create_column(&$column)
+	public function createColumn(&$column)
 	{
 		$column['column_name'] = strtolower($column['column_name']);
 		$column['data_type'] = strtolower(preg_replace('/\(.*?\)/','',$column['data_type']));
@@ -104,29 +104,29 @@ class OciAdapter extends Connection
 		}
 
 		$c = new Column();
-		$c->inflected_name	= Inflector::instance()->variablize($column['column_name']);
+		$c->inflectedName	= Inflector::instance()->variablize($column['column_name']);
 		$c->name			= $column['column_name'];
 		$c->nullable		= $column['nullable'] == 'Y' ? true : false;
 		$c->pk				= $column['pk'] == 'P' ? true : false;
 		$c->length			= $column['data_length'];
 	
 		if ($column['data_type'] == 'timestamp')
-			$c->raw_type = 'datetime';
+			$c->rawType = 'datetime';
 		else
-			$c->raw_type = $column['data_type'];
+			$c->rawType = $column['data_type'];
 
-		$c->map_raw_type();
-		$c->default	= $c->cast($column['data_default'],$this);
+		$c->mapRawType();
+		$c->default	= $c->cast($column['data_default'], $this);
 
 		return $c;
 	}
 
-	public function set_encoding($charset)
+	public function setEncoding($charset)
 	{
 		// is handled in the constructor
 	}
 
-	public function native_database_types()
+	public function nativeDatabaseTypes()
 	{
 		return array(
 			'primary_key' => "NUMBER(38) NOT NULL PRIMARY KEY",

@@ -4,6 +4,8 @@
  */
 namespace ActiveRecord;
 
+use ChickenTools\Arry;
+
 /**
  * Helper class for building sql statements progmatically.
  *
@@ -25,7 +27,7 @@ class SQLBuilder
 
 	// for where
 	private $where;
-	private $where_values = array();
+	private $whereValues = array();
 
 	// for insert/update
 	private $data;
@@ -55,7 +57,7 @@ class SQLBuilder
 	 */
 	public function __toString()
 	{
-		return $this->to_s();
+		return $this->toString();
 	}
 
 	/**
@@ -64,9 +66,9 @@ class SQLBuilder
 	 * @see __toString
 	 * @return string
 	 */
-	public function to_s()
+	public function toString()
 	{
-		$func = 'build_' . strtolower($this->operation);
+		$func = 'build' . ucfirst(strtolower($this->operation));
 		return $this->$func();
 	}
 
@@ -75,27 +77,27 @@ class SQLBuilder
 	 *
 	 * @return array
 	 */
-	public function bind_values()
+	public function bindValues()
 	{
 		$ret = array();
 
 		if ($this->data)
 			$ret = array_values($this->data);
 
-		if ($this->get_where_values())
-			$ret = array_merge($ret,$this->get_where_values());
+		if ($this->getWhereValues())
+			$ret = array_merge($ret,$this->getWhereValues());
 
-		return array_flatten($ret);
+		return \ChickenTools\Arry::flatten($ret);
 	}
 
-	public function get_where_values()
+	public function getWhereValues()
 	{
-		return $this->where_values;
+		return $this->whereValues;
 	}
 
 	public function where(/* (conditions, values) || (hash) */)
 	{
-		$this->apply_where_conditions(func_get_args());
+		$this->applyWhereConditions(func_get_args());
 		return $this;
 	}
 
@@ -142,16 +144,16 @@ class SQLBuilder
 		return $this;
 	}
 
-	public function insert($hash, $pk=null, $sequence_name=null)
+	public function insert($hash, $pk=null, $sequenceName=null)
 	{
-		if (!is_hash($hash))
+		if (!Arry::isHash($hash))
 			throw new ActiveRecordException('Inserting requires a hash.');
 
 		$this->operation = 'INSERT';
 		$this->data = $hash;
 
-		if ($pk && $sequence_name)
-			$this->sequence = array($pk,$sequence_name);
+		if ($pk && $sequenceName)
+			$this->sequence = array($pk,$sequenceName);
 
 		return $this;
 	}
@@ -160,7 +162,7 @@ class SQLBuilder
 	{
 		$this->operation = 'UPDATE';
 
-		if (is_hash($mixed))
+		if (Arry::isHash($mixed))
 			$this->data = $mixed;
 		elseif (is_string($mixed))
 			$this->update = $mixed;
@@ -173,14 +175,14 @@ class SQLBuilder
 	public function delete()
 	{
 		$this->operation = 'DELETE';
-		$this->apply_where_conditions(func_get_args());
+		$this->applyWhereConditions(func_get_args());
 		return $this;
 	}
 
 	/**
 	 * Reverses an order clause.
 	 */
-	public static function reverse_order($order)
+	public static function reverseOrder($order)
 	{
 		if (!trim($order))
 			return $order;
@@ -202,46 +204,52 @@ class SQLBuilder
 	}
 
 	/**
-	 * Converts a string like "id_and_name_or_z" into a conditions value like array("id=? AND name=? OR z=?", values, ...).
+	 * Converts a string like "IdAndNameOrZ" into a conditions value like array("id=? AND name=? OR z=?", values, ...).
 	 *
 	 * @param Connection $connection
-	 * @param $name Underscored string
+	 * @param $name Cameled string
 	 * @param $values Array of values for the field names. This is used
 	 *   to determine what kind of bind marker to use: =?, IN(?), IS NULL
 	 * @param $map A hash of "mapped_column_name" => "real_column_name"
 	 * @return A conditions array in the form array(sql_string, value1, value2,...)
 	 */
-	public static function create_conditions_from_underscored_string(Connection $connection, $name, &$values=array(), &$map=null)
+	public static function createConditionsFromCameledString(Connection $connection, $name, &$values=array(), &$map=null)
 	{
+
 		if (!$name)
 			return null;
 
-		$parts = preg_split('/(_and_|_or_)/i',$name,-1,PREG_SPLIT_DELIM_CAPTURE);
+		// Split on And's and Or's
+		$parts = preg_split('/(And|Or)/', $name, -1, PREG_SPLIT_DELIM_CAPTURE);
 		$num_values = count($values);
 		$conditions = array('');
 
-		for ($i=0,$j=0,$n=count($parts); $i<$n; $i+=2,++$j)
+		// Loop throug the found parts in pairs
+		for ($i=0, $j=0, $n=count($parts); $i < $n; $i+=2, ++$j)
 		{
+			// It's not the first part, so we have a 'and/or'
 			if ($i >= 2)
-				$conditions[0] .= preg_replace(array('/_and_/i','/_or_/i'),array(' AND ',' OR '),$parts[$i-1]);
+				$conditions[0] .= preg_replace(array('/And/','/Or/i'),array(' AND ',' OR '), $parts[$i-1]);
 
-			if ($j < $num_values)
-			{
-				if (!is_null($values[$j]))
-				{
+			// Is there a value in the given array available?
+			if ($j < $num_values) {
+				if (!is_null($values[$j])) {
+
+					// Bind the value to the fieldname
 					$bind = is_array($values[$j]) ? ' IN(?)' : '=?';
 					$conditions[] = $values[$j];
-				}
-				else
+
+				} else {
 					$bind = ' IS NULL';
-			}
-			else
+				}
+			} else {
 				$bind = ' IS NULL';
+			}
 
 			// map to correct name if $map was supplied
-			$name = $map && isset($map[$parts[$i]]) ? $map[$parts[$i]] : $parts[$i];
+			$name = strtolower($map && isset($map[$parts[$i]]) ? $map[$parts[$i]] : $parts[$i]);
 
-			$conditions[0] .= $connection->quote_name($name) . $bind;
+			$conditions[0] .= $connection->quoteName($name) . $bind;
 		}
 		return $conditions;
 	}
@@ -254,8 +262,10 @@ class SQLBuilder
 	 * @param $map A hash of "mapped_column_name" => "real_column_name"
 	 * @return array A hash of array(name => value, ...)
 	 */
-	public static function create_hash_from_underscored_string($name, &$values=array(), &$map=null)
+	public static function createHashFromUnderscoredString($name, &$values=array(), &$map=null)
 	{
+		throw new \Exception("This should be refactored!!!", 1);
+	
 		$parts = preg_split('/(_and_|_or_)/i',$name);
 		$hash = array();
 
@@ -275,93 +285,89 @@ class SQLBuilder
 	 * @param array $hash
 	 * @return array $new
 	 */
-	private function prepend_table_name_to_fields($hash=array())
+	private function prependTableNameToFields($hash=array())
 	{
 		$new = array();
-		$table = $this->connection->quote_name($this->table);
+		$table = $this->connection->quoteName($this->table);
 
 		foreach ($hash as $key => $value)
 		{
-			$k = $this->connection->quote_name($key);
+			$k = $this->connection->quoteName($key);
 			$new[$table.'.'.$k] = $value;
 		}
 
 		return $new;
 	}
 
-	private function apply_where_conditions($args)
+	private function applyWhereConditions($args)
 	{
 		require_once 'Expressions.php';
 		$num_args = count($args);
 
-		if ($num_args == 1 && is_hash($args[0]))
-		{
-			$hash = is_null($this->joins) ? $args[0] : $this->prepend_table_name_to_fields($args[0]);
+		if ($num_args == 1 && Arry::isHash($args[0])) {
+
+			$hash = is_null($this->joins) ? $args[0] : $this->prependTableNameToFields($args[0]);
 			$e = new Expressions($this->connection,$hash);
-			$this->where = $e->to_s();
-			$this->where_values = array_flatten($e->values());
-		}
-		elseif ($num_args > 0)
-		{
+			$this->where = $e->toString();
+			$this->whereValues = Arry::flatten($e->values());
+
+		} elseif ($num_args > 0) {
+
 			// if the values has a nested array then we'll need to use Expressions to expand the bind marker for us
 			$values = array_slice($args,1);
 
-			foreach ($values as $name => &$value)
-			{
-				if (is_array($value))
-				{
+			foreach ($values as $name => &$value) {
+				if (is_array($value)) {
 					$e = new Expressions($this->connection,$args[0]);
-					$e->bind_values($values);
-					$this->where = $e->to_s();
-					$this->where_values = array_flatten($e->values());
+					$e->bindValues($values);
+					$this->where = $e->toString();
+					$this->whereValues = Arry::flatten($e->values());
 					return;
 				}
 			}
 
 			// no nested array so nothing special to do
 			$this->where = $args[0];
-			$this->where_values = &$values;
+			$this->whereValues = &$values;
 		}
 	}
 
-	private function build_delete()
+	private function buildDelete()
 	{
 		$sql = "DELETE FROM $this->table";
 
 		if ($this->where)
 			$sql .= " WHERE $this->where";
 
-		if ($this->connection->accepts_limit_and_order_for_update_and_delete())
-		{
+		if ($this->connection->acceptsLimitAndOrderForUpdateAndDelete()) {
 			if ($this->order)
 				$sql .= " ORDER BY $this->order";
 
 			if ($this->limit)
-				$sql = $this->connection->limit($sql,null,$this->limit);
+				$sql = $this->connection->limit($sql, null, $this->limit);
 		}
 
 		return $sql;
 	}
 
-	private function build_insert()
+	private function buildInsert()
 	{
 		require_once 'Expressions.php';
-		$keys = join(',',$this->quoted_key_names());
+		$keys = join(',',$this->quotedKeyNames());
 
-		if ($this->sequence)
-		{
+		if ($this->sequence) {
 			$sql =
-				"INSERT INTO $this->table($keys," . $this->connection->quote_name($this->sequence[0]) .
-				") VALUES(?," . $this->connection->next_sequence_value($this->sequence[1]) . ")";
-		}
-		else
+				"INSERT INTO $this->table($keys," . $this->connection->quoteName($this->sequence[0]) .
+				") VALUES(?," . $this->connection->nextSequenceValue($this->sequence[1]) . ")";
+		} else {
 			$sql = "INSERT INTO $this->table($keys) VALUES(?)";
+		}
 
-		$e = new Expressions($this->connection,$sql,array_values($this->data));
-		return $e->to_s();
+		$e = new Expressions($this->connection, $sql, array_values($this->data));
+		return $e->toString();
 	}
 
-	private function build_select()
+	private function buildSelect()
 	{
 		$sql = "SELECT $this->select FROM $this->table";
 
@@ -386,20 +392,19 @@ class SQLBuilder
 		return $sql;
 	}
 
-	private function build_update()
+	private function buildUpdate()
 	{
 		if (strlen($this->update) > 0)
 			$set = $this->update;
 		else
-			$set = join('=?, ', $this->quoted_key_names()) . '=?';
+			$set = join('=?, ', $this->quotedKeyNames()) . '=?';
 
 		$sql = "UPDATE $this->table SET $set";
 
 		if ($this->where)
 			$sql .= " WHERE $this->where";
 
-		if ($this->connection->accepts_limit_and_order_for_update_and_delete())
-		{
+		if ($this->connection->acceptsLimitAndOrderForUpdateAndDelete()) {
 			if ($this->order)
 				$sql .= " ORDER BY $this->order";
 
@@ -410,12 +415,12 @@ class SQLBuilder
 		return $sql;
 	}
 
-	private function quoted_key_names()
+	private function quotedKeyNames()
 	{
 		$keys = array();
 
 		foreach ($this->data as $key => $value)
-			$keys[] = $this->connection->quote_name($key);
+			$keys[] = $this->connection->quoteName($key);
 
 		return $keys;
 	}

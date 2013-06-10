@@ -36,7 +36,7 @@ namespace ActiveRecord;
 
 use \Closure;
 
-function classify($class_name, $singularize=false)
+function classify($className, $singularize = false)
 {
 	if ($singularize)
     $class_name = Utils::singularize($class_name);
@@ -45,32 +45,9 @@ function classify($class_name, $singularize=false)
 	return ucfirst($class_name);
 }
 
-// http://snippets.dzone.com/posts/show/4660
-function array_flatten(array $array)
-{
-	$i = 0;
 
-	while ($i < count($array))
-	{
-		if (is_array($array[$i]))
-			array_splice($array,$i,1,$array[$i]);
-		else
-			++$i;
-	}
-	return $array;
-}
 
-/**
- * Somewhat naive way to determine if an array is a hash.
- */
-function is_hash(&$array)
-{
-	if (!is_array($array))
-		return false;
 
-	$keys = array_keys($array);
-	return @is_string($keys[0]) ? true : false;
-}
 
 /**
  * Strips a class name of any namespaces and namespace operator.
@@ -92,21 +69,21 @@ function denamespace($class_name)
 	return $class_name;
 }
 
-function get_namespaces($class_name)
+function getNamespaces($class_name)
 {
 	if (has_namespace($class_name))
 		return explode('\\', $class_name);
 	return null;
 }
 
-function has_namespace($class_name)
+function hasNamespace($class_name)
 {
 	if (strpos($class_name, '\\') !== false)
 		return true;
 	return false;
 }
 
-function has_absolute_namespace($class_name)
+function hasAbsoluteNamespace($class_name)
 {
 	if (strpos($class_name, '\\') === 0)
 		return true;
@@ -143,23 +120,7 @@ function collect(&$enumerable, $name_or_closure)
 	return $ret;
 }
 
-/**
- * Wrap string definitions (if any) into arrays.
- */
-function wrap_strings_in_arrays(&$strings)
-{
-	if (!is_array($strings))
-		$strings = array(array($strings));
-	else 
-	{
-		foreach ($strings as &$str)
-		{
-			if (!is_array($str))
-				$str = array($str);
-		}
-	}
-	return $strings;
-}
+
 
 /**
  * Some internal utility functions.
@@ -168,21 +129,21 @@ function wrap_strings_in_arrays(&$strings)
  */
 class Utils
 {
-	public static function extract_options($options)
+	public static function extractOptions($options)
 	{
 		return is_array(end($options)) ? end($options) : array();
 	}
 
-	public static function add_condition(&$conditions=array(), $condition, $conjuction='AND')
+	public static function addCondition(&$conditions = array(), $condition, $conjuction = 'AND')
 	{
 		if (is_array($condition))
 		{
 			if (empty($conditions))
-				$conditions = array_flatten($condition);
+				$conditions = arrayFlatten($condition);
 			else
 			{
 				$conditions[0] .= " $conjuction " . array_shift($condition);
-				$conditions[] = array_flatten($condition);
+				$conditions[] = arrayFlatten($condition);
 			}
 		}
 		elseif (is_string($condition))

@@ -52,7 +52,7 @@ class Column
 	 * The inflected name of this columns .. hyphens/spaces will be => _.
 	 * @var string
 	 */
-	public $inflected_name;
+	public $inflectedName;
 
 	/**
 	 * The type of this column: STRING, INTEGER, ...
@@ -64,7 +64,7 @@ class Column
 	 * The raw database specific type.
 	 * @var string
 	 */
-	public $raw_type;
+	public $rawType;
 
 	/**
 	 * The maximum length of this column.
@@ -94,7 +94,7 @@ class Column
 	 * True if this column is set to auto_increment.
 	 * @var boolean
 	 */
-	public $auto_increment;
+	public $autoIncrement;
 
 	/**
 	 * Name of the sequence to use for this column if any.
@@ -130,7 +130,7 @@ class Column
 				if ($value instanceof \DateTime)
 					return new DateTime($value->format('Y-m-d H:i:s T'));
 
-				return $connection->string_to_datetime($value);
+				return $connection->stringToDateTime($value);
 		}
 		return $value;
 	}
@@ -139,13 +139,13 @@ class Column
 	 * Sets the $type member variable.
 	 * @return mixed
 	 */
-	public function map_raw_type()
+	public function mapRawType()
 	{
-		if ($this->raw_type == 'integer')
-			$this->raw_type = 'int';
+		if ($this->rawType == 'integer')
+			$this->rawType = 'int';
 
-		if (array_key_exists($this->raw_type,self::$TYPE_MAPPING))
-			$this->type = self::$TYPE_MAPPING[$this->raw_type];
+		if (array_key_exists($this->rawType,self::$TYPE_MAPPING))
+			$this->type = self::$TYPE_MAPPING[$this->rawType];
 		else
 			$this->type = self::STRING;
 

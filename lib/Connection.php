@@ -29,7 +29,7 @@ abstract class Connection
 	 * The last query run.
 	 * @var string
 	 */
-	public $last_query;
+	public $lastQuery;
 	/**
 	 * Switch for logging.
 	 *
@@ -51,12 +51,12 @@ abstract class Connection
 	 * Database's date format
 	 * @var string
 	 */
-	static $date_format = 'Y-m-d';
+	static $dateFormat = 'Y-m-d';
 	/**
 	 * Database's datetime format
 	 * @var string
 	 */
-	static $datetime_format = 'Y-m-d H:i:s T';
+	static $dateTimeFormat = 'Y-m-d H:i:s T';
 	/**
 	 * Default PDO options to set for each connection.
 	 * @var array
@@ -80,7 +80,7 @@ abstract class Connection
 	/**
 	 * Retrieve a database connection.
 	 *
-	 * @param string $connection_string_or_connection_name A database connection string (ex. mysql://user:pass@host[:port]/dbname)
+	 * @param string  A database connection string (ex. mysql://user:pass@host[:port]/dbname)
 	 *   Everything after the protocol:// part is specific to the connection adapter.
 	 *   OR
 	 *   A connection name that is set in ActiveRecord\Config
@@ -88,33 +88,32 @@ abstract class Connection
 	 * @return Connection
 	 * @see parse_connection_url
 	 */
-	public static function instance($connection_string_or_connection_name=null)
+	public static function instance($connectionStringOrConnectionName=null)
 	{
 		$config = Config::instance();
 
-		if (strpos($connection_string_or_connection_name, '://') === false)
-		{
-			$connection_string = $connection_string_or_connection_name ?
-				$config->get_connection($connection_string_or_connection_name) :
-				$config->get_default_connection_string();
-		}
-		else
-			$connection_string = $connection_string_or_connection_name;
+		// Is it a connection string or name?
+		if (strpos($connectionStringOrConnectionName, '://') === false)	{
+			$connectionString = $connectionStringOrConnectionName ?
+				$config->getConnection($connectionStringOrConnectionName) :
+				$config->getDefaultConnectionString();
+		} else {
+			$connectionString = $connectionStringOrConnectionName;
+		}	
 
-		if (!$connection_string)
-			throw new DatabaseException("Empty connection string");
+		if (!$connectionString)	throw new DatabaseException("Empty connection string");
 
-		$info = static::parse_connection_url($connection_string);
-		$fqclass = static::load_adapter_class($info->protocol);
+		$info = static::parseConnectionUrl($connectionString);
+		$fqclass = static::loadAdapterClass($info->protocol);
 
 		try {
 			$connection = new $fqclass($info);
 			$connection->protocol = $info->protocol;
-			$connection->logging = $config->get_logging();
-			$connection->logger = $connection->logging ? $config->get_logger() : null;
+			$connection->logging = $config->getLogging();
+			$connection->logger = $connection->logging ? $config->getLogger() : null;
 
 			if (isset($info->charset))
-				$connection->set_encoding($info->charset);
+				$connection->setEncoding($info->charset);
 		} catch (PDOException $e) {
 			throw new DatabaseException($e);
 		}
@@ -127,7 +126,7 @@ abstract class Connection
 	 * @param string $adapter Name of the adapter.
 	 * @return string The full name of the class including namespace.
 	 */
-	private static function load_adapter_class($adapter)
+	private static function loadAdapterClass($adapter)
 	{
 		$class = ucwords($adapter) . 'Adapter';
 		$fqclass = 'ActiveRecord\\' . $class;
@@ -162,13 +161,18 @@ abstract class Connection
 	 * @param string $connection_url A connection URL
 	 * @return object the parsed URL as an object.
 	 */
-	public static function parse_connection_url($connection_url)
+	public static function parseConnectionUrl($connectionUrl)
 	{
-		$url = @parse_url($connection_url);
 
-		if (!isset($url['host']))
+		// Parse Url for parts
+		$url = @parse_url($connectionUrl);
+
+		// No host?!
+		if (!isset($url['host'])) {
 			throw new DatabaseException('Database host must be specified in the connection string. If you want to specify an absolute filename, use e.g. sqlite://unix(/path/to/file)');
+		}	
 
+		// Create info object
 		$info = new \stdClass();
 		$info->protocol = $url['scheme'];
 		$info->host = $url['host'];
@@ -176,35 +180,38 @@ abstract class Connection
 		$info->user = isset($url['user']) ? $url['user'] : null;
 		$info->pass = isset($url['pass']) ? $url['pass'] : null;
 
-		$allow_blank_db = ($info->protocol == 'sqlite');
+		$allowBlankDb = ($info->protocol == 'sqlite');
 
-		if ($info->host == 'unix(')
-		{
-			$socket_database = $info->host . '/' . $info->db;
+		if ($info->host == 'unix(') {
+			$socketDatabase = $info->host . '/' . $info->db;
 
-			if ($allow_blank_db)
-				$unix_regex = '/^unix\((.+)\)\/?().*$/';
+			if ($allowBlankDb)
+				$unixRegex = '/^unix\((.+)\)\/?().*$/';
 			else
-				$unix_regex = '/^unix\((.+)\)\/(.+)$/';
+				$unixRegex = '/^unix\((.+)\)\/(.+)$/';
 
-			if (preg_match_all($unix_regex, $socket_database, $matches) > 0)
+			if (preg_match_all($unixRegex, $socketDatabase, $matches) > 0)
 			{
 				$info->host = $matches[1][0];
 				$info->db = $matches[2][0];
 			}
-		} elseif (substr($info->host, 0, 8) == 'windows(')
-		{
+
+		} elseif (substr($info->host, 0, 8) == 'windows(') {
+
 			$info->host = urldecode(substr($info->host, 8) . '/' . substr($info->db, 0, -1));
 			$info->db = null;
+
 		}
 
-		if ($allow_blank_db && $info->db)
+		if ($allowBlankDb && $info->db) {
 			$info->host .= '/' . $info->db;
+		}
 
-		if (isset($url['port']))
+		if (isset($url['port'])) {
 			$info->port = $url['port'];
+		}
 
-		if (strpos($connection_url, 'decode=true') !== false)
+		if (strpos($connectionUrl, 'decode=true') !== false)
 		{
 			if ($info->user)
 				$info->user = urldecode($info->user);
@@ -213,13 +220,13 @@ abstract class Connection
 				$info->pass = urldecode($info->pass);
 		}
 
-		if (isset($url['query']))
-		{
+		if (isset($url['query'])) {
 			foreach (explode('/&/', $url['query']) as $pair) {
 				list($name, $value) = explode('=', $pair);
 
-				if ($name == 'charset')
+				if ($name == 'charset') {
 					$info->charset = $value;
+				}
 			}
 		}
 
@@ -261,10 +268,10 @@ abstract class Connection
 	public function columns($table)
 	{
 		$columns = array();
-		$sth = $this->query_column_info($table);
+		$sth = $this->queryColumnInfo($table);
 
 		while (($row = $sth->fetch())) {
-			$c = $this->create_column($row);
+			$c = $this->createColumn($row);
 			$columns[$c->name] = $c;
 		}
 		return $columns;
@@ -287,7 +294,7 @@ abstract class Connection
 	 * @param string $sequence Optional name of a sequence to use
 	 * @return int
 	 */
-	public function insert_id($sequence=null)
+	public function insertId($sequence=null)
 	{
 		return $this->connection->lastInsertId($sequence);
 	}
@@ -303,12 +310,14 @@ abstract class Connection
 	{
 		if ($this->logging)
 		{
-			$this->logger->log($sql);
-			if ( $values ) $this->logger->log($values);
+			if ($values) {
+				$this->logger->addInfo($sql, $values);
+			} else {
+				$this->logger->addInfo($sql);
+			}
 		}
 
-		$this->last_query = $sql;
-
+		$this->lastQuery = $sql;
 		try {
 			if (!($sth = $this->connection->prepare($sql)))
 				throw new DatabaseException($this);
@@ -334,7 +343,7 @@ abstract class Connection
 	 * @param array &$values Optional array of values to bind to the query.
 	 * @return string
 	 */
-	public function query_and_fetch_one($sql, &$values=array())
+	public function queryAndFetchOne($sql, &$values=array())
 	{
 		$sth = $this->query($sql, $values);
 		$row = $sth->fetch(PDO::FETCH_NUM);
@@ -347,7 +356,7 @@ abstract class Connection
 	 * @param string $sql Raw SQL string to execute.
 	 * @param Closure $handler Closure that will be passed the fetched results.
 	 */
-	public function query_and_fetch($sql, Closure $handler)
+	public function queryAndFetch($sql, Closure $handler)
 	{
 		$sth = $this->query($sql);
 
@@ -363,7 +372,7 @@ abstract class Connection
 	public function tables()
 	{
 		$tables = array();
-		$sth = $this->query_for_tables();
+		$sth = $this->queryForTables();
 
 		while (($row = $sth->fetch(PDO::FETCH_NUM)))
 			$tables[] = $row[0];
@@ -403,7 +412,7 @@ abstract class Connection
 	 *
 	 * @return boolean
 	 */
-	function supports_sequences()
+	function supportsSequences()
 	{
 		return false;
 	}
@@ -415,7 +424,7 @@ abstract class Connection
 	 * @param string $column_name Name of column sequence is for
 	 * @return string sequence name or null if not supported.
 	 */
-	public function get_sequence_name($table, $column_name)
+	public function getSequenceName($table, $column_name)
 	{
 		return "{$table}_seq";
 	}
@@ -426,7 +435,7 @@ abstract class Connection
 	 * @param string $sequence_name Name of the sequence
 	 * @return string
 	 */
-	public function next_sequence_value($sequence_name)
+	public function nextSequenceValue($sequence_name)
 	{
 		return null;
 	}
@@ -437,7 +446,7 @@ abstract class Connection
 	 * @param string $string String to quote.
 	 * @return string
 	 */
-	public function quote_name($string)
+	public function quoteName($string)
 	{
 		return $string[0] === static::$QUOTE_CHARACTER || $string[strlen($string) - 1] === static::$QUOTE_CHARACTER ?
 			$string : static::$QUOTE_CHARACTER . $string . static::$QUOTE_CHARACTER;
@@ -449,9 +458,9 @@ abstract class Connection
 	 * @param DateTime $datetime The DateTime object
 	 * @return string
 	 */
-	public function date_to_string($datetime)
+	public function dateToString($datetime)
 	{
-		return $datetime->format(static::$date_format);
+		return $datetime->format(static::$dateFormat);
 	}
 
 	/**
@@ -460,9 +469,9 @@ abstract class Connection
 	 * @param DateTime $datetime The DateTime object
 	 * @return string
 	 */
-	public function datetime_to_string($datetime)
+	public function dateTimeToString($datetime)
 	{
-		return $datetime->format(static::$datetime_format);
+		return $datetime->format(static::$dateTimeFormat);
 	}
 
 	/**
@@ -471,7 +480,7 @@ abstract class Connection
 	 * @param string $string A datetime in the form accepted by date_create()
 	 * @return DateTime
 	 */
-	public function string_to_datetime($string)
+	public function stringToDateTime($string)
 	{
 		$date = date_create($string);
 		$errors = \DateTime::getLastErrors();
@@ -479,7 +488,7 @@ abstract class Connection
 		if ($errors['warning_count'] > 0 || $errors['error_count'] > 0)
 			return null;
 
-		return new DateTime($date->format(static::$datetime_format));
+		return new DateTime($date->format(static::$dateTimeFormat));
 	}
 
 	/**
@@ -498,7 +507,7 @@ abstract class Connection
 	 * @param string $table Name of a table
 	 * @return PDOStatement
 	 */
-	abstract public function query_column_info($table);
+	abstract public function queryColumnInfo($table);
 
 	/**
 	 * Query for all tables in the current database. The result must only
@@ -506,18 +515,18 @@ abstract class Connection
 	 *
 	 * @return PDOStatement
 	 */
-	abstract function query_for_tables();
+	abstract function queryForTables();
 
 	/**
 	 * Executes query to specify the character set for this connection.
 	 */
-	abstract function set_encoding($charset);
+	abstract function setEncoding($charset);
 
 	/*
 	 * Returns an array mapping of native database types
 	 */
 
-	abstract public function native_database_types();
+	abstract public function nativeDatabaseTypes();
 
 	/**
 	 * Specifies whether or not adapter can use LIMIT/ORDER clauses with DELETE & UPDATE operations
@@ -525,7 +534,7 @@ abstract class Connection
 	 * @internal
 	 * @returns boolean (FALSE by default)
 	 */
-	public function accepts_limit_and_order_for_update_and_delete()
+	public function acceptsLimitAndOrderForUpdateAndDelete()
 	{
 		return false;
 	}
