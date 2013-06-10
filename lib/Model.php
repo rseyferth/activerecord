@@ -1107,36 +1107,12 @@ class Model
 		// Go validate!
 		$result = static::$_validation->validate($this);
 
-		var_dump($result);
-		die;
+		// Success?
+		if ($result->success == false) return false;
 
+		// True
 		return true;
 
-/*
-
-
-		require_once 'Validations.php';
-
-		$validator = new Validations($this);
-		$validation_on = 'validation_on_' . ($this->is_new_record() ? 'create' : 'update');
-
-		foreach (array('beforeValidation', "before_$validation_on") as $callback)
-		{
-			if (!$this->invokeCallback($callback,false))
-				return false;
-		}
-
-		// need to store reference b4 validating so that custom validators have access to add errors
-		$this->errors = $validator->get_record();
-		$validator->validate();
-
-		foreach (array('after_validation', "after_$validation_on") as $callback)
-			$this->invokeCallback($callback,false);
-
-		if (!$this->errors->isEmpty())
-			return false;
-
-		return true;*/
 	}
 
 	/**
