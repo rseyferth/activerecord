@@ -45,7 +45,7 @@
 		$root = realpath(isset($path) ? $path : '.');
 
 
-		if (($namespaces = \ChickenTools\Str::getNamespaces($className)))
+		if (strstr($className, "\\") && ($namespaces = explode('\\', $className)))
 		{
 			$className = array_pop($namespaces);
 			$directories = array();
