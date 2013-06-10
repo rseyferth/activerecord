@@ -232,6 +232,14 @@ class Model
 	 */
 	static $delegate = array();
 
+
+
+	static $validates = false;
+
+	protected static $_validation = null;
+
+
+
 	/**
 	 * Constructs a model.
 	 *
@@ -257,7 +265,7 @@ class Model
 		if (!$instantiatingViaFind)
 		{
 			foreach (static::table()->columns as $name => $meta)
-				$this->_attributes[$meta->inflected_name] = $meta->default;
+				$this->_attributes[$meta->inflectedName] = $meta->default;
 		}
 
 		$this->setAttributesViaMassAssignment($attributes, $guardAttributes);
@@ -492,7 +500,7 @@ class Model
 			return $this->_attributes[$name];
 
 		// check relationships if no attribute
-		if (array_key_exists($name,$this->__relationships))
+		if (array_key_exists($name,$this->_relationships))
 			return $this->_relationships[$name];
 
 		$table = static::table();
@@ -524,6 +532,25 @@ class Model
 		}
 
 		throw new UndefinedPropertyException(get_called_class(),$name);
+	}
+
+	/**
+	 * Check if given attribute exists
+	 * @param  string  Attribute name
+	 * @return boolean           True or false
+	 */
+	public function hasAttribute($attrName)
+	{
+
+		// In default attributes
+		if (array_key_exists($attrName, $this->_attributes)) return true;
+
+		// A getter available?
+		if (method_exists($this, "__get_$attrName")) return true;			
+
+		return false;
+
+
 	}
 
 	/**
@@ -843,7 +870,7 @@ class Model
 			$column = $table->getColumnByInflectedName($pk);
 
 			if ($column->autoIncrement || $useSequence) {
-				$this->attributes[$pk] = static::connection()->insertId($table->sequence);
+				$this->_attributes[$pk] = static::connection()->insertId($table->sequence);
 			}
 		}
 
@@ -1069,7 +1096,19 @@ class Model
 	protected function _validate()
 	{
 
+		// Check if validation is necessary and parsed
+		if (static::$validates === false) return true;
+		if (is_null(static::$_validation)) {
+			require_once("Validation/Validation.php");
+			static::$_validation = Validation\Validation::onModel(get_called_class());
+		}
 
+		
+		// Go validate!
+		$result = static::$_validation->validate($this);
+
+		var_dump($result);
+		die;
 
 		return true;
 

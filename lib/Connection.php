@@ -130,7 +130,7 @@ abstract class Connection
 	{
 		$class = ucwords($adapter) . 'Adapter';
 		$fqclass = 'ActiveRecord\\' . $class;
-		$source = __DIR__ . "/adapters/$class.php";
+		$source = __DIR__ . "/Adapters/$class.php";
 
 		if (!file_exists($source))
 			throw new DatabaseException("$fqclass not found!");

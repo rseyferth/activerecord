@@ -318,7 +318,7 @@ class Table
 		$data = $this->processData($data);
 
 		$sql = new SQLBuilder($this->conn, $this->getFullyQualifiedTableName());
-		$sql->insert($data, $pk, $sequence_name);
+		$sql->insert($data, $pk, $sequenceName);
 
 		$values = array_values($data);
 		return $this->conn->query(($this->lastSql = $sql->toString()), $values);

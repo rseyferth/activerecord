@@ -26,7 +26,7 @@ class Cache
 	 *
 	 * Ex:
 	 * $cfg = ActiveRecord\Config::instance();
-	 * $cfg->setCache('memcache://localhost:11211',array('namespace' => 'myCooApp',
+	 * $cfg->setCache('memcache://localhost:11211',array('namespace' => 'myCoolApp',
 	 *																											 'expire'		 => 120
 	 *																											 ));
 	 *
@@ -45,7 +45,7 @@ class Cache
 			$url = parse_url($url);
 			$file = ucwords(Inflector::instance()->camelize($url['scheme']));
 			$class = "ActiveRecord\\$file";
-			require_once __DIR__ . "/cache/$file.php";
+			require_once __DIR__ . "/Cache/$file.php";
 			static::$adapter = new $class($url);
 		}
 		else
