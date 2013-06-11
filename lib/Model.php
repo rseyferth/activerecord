@@ -75,12 +75,6 @@ use \ChickenTools\Arry;
  */
 class Model
 {
-	/**
-	 * An instance of {@link Errors} and will be instantiated once a write method is called.
-	 *
-	 * @var Errors
-	 */
-	public $errors;
 
 	/**
 	 * Contains model values as column_name => value
@@ -116,6 +110,13 @@ class Model
 	 * @var boolean
 	 */
 	private $_newRecord = true;
+
+	/**
+	 * Errors that occured during validation.
+	 * 
+	 * @var [type]
+	 */
+	private $_errors = null;
 
 	/**
 	 * Set to the name of the connection this {@link Model} should use.
@@ -1108,12 +1109,33 @@ class Model
 		$result = static::$_validation->validate($this);
 
 		// Success?
-		if ($result->success == false) return false;
+		if ($result->success == false) {
+
+			// Store errors
+			$this->_errors = $result->errors;
+
+			return false;
+		} else {
+
+			// Clear errors
+			$this->_errors = null;
+
+		}
 
 		// True
 		return true;
 
 	}
+
+	/**
+	 * Get the errors that occured during the last validation.
+	 * @return [type] [description]
+	 */
+	public function getErrors()
+	{
+		return $this->_errors;
+	}
+
 
 	/**
 	 * Returns true if the model has been modified.

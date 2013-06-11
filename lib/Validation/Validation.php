@@ -16,6 +16,14 @@
 			"numericality" => "NumericalityValidator"
 		);
 
+		public static $errorMessages = array(
+
+			"presence" => '%{field} can\'t be empty'
+
+		);
+
+
+
 		// Array of Validator instances
 		private static $_validators = array();
 
