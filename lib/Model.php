@@ -559,10 +559,16 @@ class Model
 	 *
 	 * @param string $name Attribute name
 	 */
-	public function flagDirty($name)
+	public function flagDirty($name, $dirty = true)
 	{
 		if (!$this->_dirty)	$this->_dirty = array();
-		$this->_dirty[$name] = true;
+		if ($dirty) {
+			$this->_dirty[$name] = true;
+		} else {
+			if (array_key_exists($name, $this->_dirty)) {
+				unset($this->_dirty[$name]);
+			}
+		}
 	}
 
 	/**
