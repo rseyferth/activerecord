@@ -156,6 +156,14 @@ class Model
 	 */
 	static $sequence;
 
+
+	/**
+	 * Set this to an order clause, to use this order for each query (unless you specify a different order)
+	 * 
+	 * @var string
+	 */
+	static $defaultOrder;
+
 	/**
 	 * Allows you to create aliases for attributes.
 	 *
@@ -1787,6 +1795,25 @@ class Model
 				$options = array('conditions' => $last);
 			}
 		}
+
+		// Check if and order was given
+		if (!array_key_exists("order", $options)) {
+
+			// A static configurator?
+			if (static::$defaultOrder) {
+
+				// Use that
+				$options['order'] = static::$defaultOrder;
+
+			} else {
+
+				// Use my pk's
+				$options['order'] = join(' ASC, ', static::table()->pk) . ' ASC';
+
+			}
+
+		}
+
 		return $options;
 	}
 
