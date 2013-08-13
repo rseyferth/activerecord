@@ -36,75 +36,7 @@ namespace ActiveRecord;
 
 use \Closure;
 
-function classify($className, $singularize = false)
-{
-	if ($singularize)
-    $class_name = Utils::singularize($class_name);
 
-	$class_name = Inflector::instance()->camelize($class_name);
-	return ucfirst($class_name);
-}
-
-
-
-
-
-/**
- * Strips a class name of any namespaces and namespace operator.
- *
- * @param string $class
- * @return string stripped class name
- * @access public
- */
-function denamespace($class_name)
-{
-	if (is_object($class_name))
-		$class_name = get_class($class_name);
-
-	if (has_namespace($class_name))
-	{
-		$parts = explode('\\', $class_name);
-		return end($parts);
-	}
-	return $class_name;
-}
-
-function getNamespaces($class_name)
-{
-	if (has_namespace($class_name))
-		return explode('\\', $class_name);
-	return null;
-}
-
-function hasNamespace($class_name)
-{
-	if (strpos($class_name, '\\') !== false)
-		return true;
-	return false;
-}
-
-function hasAbsoluteNamespace($class_name)
-{
-	if (strpos($class_name, '\\') === 0)
-		return true;
-	return false;
-}
-
-/**
- * Returns true if all values in $haystack === $needle
- * @param $needle
- * @param $haystack
- * @return unknown_type
- */
-function all($needle, array $haystack)
-{
-	foreach ($haystack as $value)
-	{
-		if ($value !== $needle)
-			return false;
-	}
-	return true;
-}
 
 function collect(&$enumerable, $name_or_closure)
 {
@@ -139,11 +71,11 @@ class Utils
 		if (is_array($condition))
 		{
 			if (empty($conditions))
-				$conditions = arrayFlatten($condition);
+				$conditions = \ChickenTools\Arry::flatten($condition);
 			else
 			{
 				$conditions[0] .= " $conjuction " . array_shift($condition);
-				$conditions[] = arrayFlatten($condition);
+				$conditions[] = \ChickenTools\Arry::flatten($condition);
 			}
 		}
 		elseif (is_string($condition))
@@ -258,11 +190,13 @@ class Utils
         'money',
         'rice',
         'information',
-        'equipment'
+        'equipment',
+        'media'
     );
 
     public static function pluralize( $string )
     {
+
         // save some time in the case that singular and plural are the same
         if ( in_array( strtolower( $string ), self::$uncountable ) )
             return $string;

@@ -106,7 +106,7 @@ abstract class Inflector
 
 	public function keyify($class_name)
 	{
-		return strtolower($this->underscorify(denamespace($class_name))) . '_id';
+		return strtolower($this->underscorify(Str::removeNamespace($class_name))) . '_id';
 	}
 
 	abstract function variablize($s);

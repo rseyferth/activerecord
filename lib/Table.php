@@ -430,7 +430,7 @@ class Table
 		{
 			// infer table name from the class name
 			$this->table = Inflector::instance()->tableize($this->class->getName());
-
+			
 			// strip namespaces from the table name if any
 			$parts = explode('\\',$this->table);
 			$this->table = $parts[count($parts)-1];

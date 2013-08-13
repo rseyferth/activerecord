@@ -523,7 +523,7 @@ class Model
 		// Shortcut to get primary key
 		if ($name == 'id') {
 			$pk = $this->getPrimaryKey(true);
-			if (isset($this->_attributes[$pk])) return $this->attributes[$pk];
+			if (isset($this->_attributes[$pk])) return $this->_attributes[$pk];
 		}
 
 		//do not remove - have to return null by reference in strict mode
@@ -679,7 +679,7 @@ class Model
 		$ret = array();
 		foreach ($attributes as $name) {
 			if (array_key_exists($name, $this->_attributes)) {
-				$ret[$name] = $this->attributes[$name];
+				$ret[$name] = $this->_attributes[$name];
 			}
 		}
 		return $ret;
