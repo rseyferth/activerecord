@@ -697,7 +697,7 @@ class BelongsTo extends AbstractRelationship
 
 	public function __get($name)
 	{
-		if($name === 'primary_key' && !isset($this->primaryKey)) {
+		if($name === 'primaryKey' && !isset($this->primaryKey)) {
 			$this->primaryKey = array(Table::load($this->className)->pk[0]);
 		}
 
