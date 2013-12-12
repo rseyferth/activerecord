@@ -21,7 +21,7 @@ use ArrayIterator;
  *
  * <code>
  * class Person extends ActiveRecord\Model {
- *   static $validates_length_of = array(
+ *   static $validatesLengthOf = array(
  *     array('name', 'within' => array(30,100),
  *     array('state', 'is' => 2)
  *   );
@@ -47,20 +47,20 @@ class Validations
 	private $record;
 
 	private static $VALIDATION_FUNCTIONS = array(
-		'validates_presence_of',
-		'validates_size_of',
-		'validates_length_of',
-		'validates_inclusion_of',
-		'validates_exclusion_of',
-		'validates_format_of',
-		'validates_numericality_of',
-		'validates_uniqueness_of'
+		'validatesPresenceOf',
+		'validatesSizeOf',
+		'validatesLengthOf',
+		'validatesInclusionOf',
+		'validatesExclusionOf',
+		'validatesFormatOf',
+		'validatesNumericalityOf',
+		'validatesUniquenessOf'
 	);
 
 	private static $DEFAULT_VALIDATION_OPTIONS = array(
 		'on' => 'save',
-		'allow_null' => false,
-		'allow_blank' => false,
+		'allowNull' => false,
+		'allowBlank' => false,
 		'message' => null,
 	);
 
@@ -73,11 +73,11 @@ class Validations
 	);
 
 	private static $ALL_NUMERICALITY_CHECKS = array(
-		'greater_than' => null,
-		'greater_than_or_equal_to'  => null,
-		'equal_to' => null,
-		'less_than' => null,
-		'less_than_or_equal_to' => null,
+		'greaterThan' => null,
+		'greaterThanOrEqualTo'  => null,
+		'equalTo' => null,
+		'lessThan' => null,
+		'lessThanOrEqualTo' => null,
 		'odd' => null,
 		'even' => null
 	);
@@ -96,7 +96,7 @@ class Validations
 		$this->validators = array_intersect(array_keys($this->klass->getStaticProperties()), self::$VALIDATION_FUNCTIONS);
 	}
 
-	public function get_record()
+	public function getRecord()
 	{
 		return $this->record;
 	}
@@ -155,7 +155,7 @@ class Validations
 	 *
 	 * <code>
 	 * class Person extends ActiveRecord\Model {
-	 *   static $validates_presence_of = array(
+	 *   static $validatesPresenceOf = array(
 	 *     array('first_name'),
 	 *     array('last_name')
 	 *   );
@@ -166,20 +166,20 @@ class Validations
 	 *
 	 * <ul>
 	 * <li><b>message:</b> custom error message</li>
-	 * <li><b>allow_blank:</b> allow blank strings</li>
-	 * <li><b>allow_null:</b> allow null strings</li>
+	 * <li><b>allowBlank:</b> allow blank strings</li>
+	 * <li><b>allowNull:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
 	 */
-	public function validates_presence_of($attrs)
+	public function validatesPresenceOf($attrs)
 	{
 		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' => Errors::$DEFAULT_ERROR_MESSAGES['blank'], 'on' => 'save'));
 
 		foreach ($attrs as $attr)
 		{
 			$options = array_merge($configuration, $attr);
-			$this->record->add_on_blank($options[0], $options['message']);
+			$this->record->addOnBlank($options[0], $options['message']);
 		}
 	}
 
@@ -188,7 +188,7 @@ class Validations
 	 *
 	 * <code>
 	 * class Car extends ActiveRecord\Model {
-	 *   static $validates_inclusion_of = array(
+	 *   static $validatesInclusionOf = array(
 	 *     array('fuel_type', 'in' => array('hyrdogen', 'petroleum', 'electric')),
 	 *   );
 	 * }
@@ -199,15 +199,15 @@ class Validations
 	 * <ul>
 	 * <li><b>in/within:</b> attribute should/shouldn't be a value within an array</li>
 	 * <li><b>message:</b> custome error message</li>
-	 * <li><b>allow_blank:</b> allow blank strings</li>
-	 * <li><b>allow_null:</b> allow null strings</li>
+	 * <li><b>allowBlank:</b> allow blank strings</li>
+	 * <li><b>allowNull:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
 	 */
-	public function validates_inclusion_of($attrs)
+	public function validatesInclusionOf($attrs)
 	{
-		$this->validates_inclusion_or_exclusion_of('inclusion', $attrs);
+		$this->validatesInclusionOrExclusionOf('inclusion', $attrs);
 	}
 
 	/**
@@ -218,16 +218,16 @@ class Validations
 	 * <ul>
 	 * <li><b>in/within:</b> attribute should/shouldn't be a value within an array</li>
 	 * <li><b>message:</b> custome error message</li>
-	 * <li><b>allow_blank:</b> allow blank strings</li>
-	 * <li><b>allow_null:</b> allow null strings</li>
+	 * <li><b>allowBlank:</b> allow blank strings</li>
+	 * <li><b>allowNull:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
-	 * @see validates_inclusion_of
+	 * @see validatesInclusionOf
 	 */
-	public function validates_exclusion_of($attrs)
+	public function validatesExclusionOf($attrs)
 	{
-		$this->validates_inclusion_or_exclusion_of('exclusion', $attrs);
+		$this->validatesInclusionOrExclusionOf('exclusion', $attrs);
 	}
 
 	/**
@@ -238,16 +238,16 @@ class Validations
 	 * <ul>
 	 * <li><b>in/within:</b> attribute should/shouldn't be a value within an array</li>
 	 * <li><b>message:</b> custome error message</li>
-	 * <li><b>allow_blank:</b> allow blank strings</li>
-	 * <li><b>allow_null:</b> allow null strings</li>
+	 * <li><b>allowBlank:</b> allow blank strings</li>
+	 * <li><b>allowNull:</b> allow null strings</li>
 	 * </ul>
 	 *
-	 * @see validates_inclusion_of
-	 * @see validates_exclusion_of
+	 * @see validatesInclusionOf
+	 * @see validatesExclusionOf
 	 * @param string $type Either inclusion or exclusion
 	 * @param $attrs Validation definition
 	 */
-	public function validates_inclusion_or_exclusion_of($type, $attrs)
+	public function validatesInclusionOrExclusionOf($type, $attrs)
 	{
 		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' => Errors::$DEFAULT_ERROR_MESSAGES[$type], 'on' => 'save'));
 
@@ -267,7 +267,7 @@ class Validations
 
 			$message = str_replace('%s', $var, $options['message']);
 
-			if ($this->is_null_with_option($var, $options) || $this->is_blank_with_option($var, $options))
+			if ($this->isNullWithOption($var, $options) || $this->isBlankWithOption($var, $options))
 				continue;
 
 			if (('inclusion' == $type && !in_array($var, $enum)) || ('exclusion' == $type && in_array($var, $enum)))
@@ -280,8 +280,8 @@ class Validations
 	 *
 	 * <code>
 	 * class Person extends ActiveRecord\Model {
-	 *   static $validates_numericality_of = array(
-	 *     array('salary', 'greater_than' => 19.99, 'less_than' => 99.99)
+	 *   static $validatesNumericalityOf = array(
+	 *     array('salary', 'greaterThan' => 19.99, 'lessThan' => 99.99)
 	 *   );
 	 * }
 	 * </code>
@@ -292,18 +292,18 @@ class Validations
 	 * <li><b>only_integer:</b> value must be an integer (e.g. not a float)</li>
 	 * <li><b>even:</b> must be even</li>
 	 * <li><b>odd:</b> must be odd"</li>
-	 * <li><b>greater_than:</b> must be greater than specified number</li>
-	 * <li><b>greater_than_or_equal_to:</b> must be greater than or equal to specified number</li>
-	 * <li><b>equal_to:</b> ...</li>
-	 * <li><b>less_than:</b> ...</li>
-	 * <li><b>less_than_or_equal_to:</b> ...</li>
-	 * <li><b>allow_blank:</b> allow blank strings</li>
-	 * <li><b>allow_null:</b> allow null strings</li>
+	 * <li><b>greaterThan:</b> must be greater than specified number</li>
+	 * <li><b>greaterThanOrEqualTo:</b> must be greater than or equal to specified number</li>
+	 * <li><b>equalTo:</b> ...</li>
+	 * <li><b>lessThan:</b> ...</li>
+	 * <li><b>lessThanOrEqualTo:</b> ...</li>
+	 * <li><b>allowBlank:</b> allow blank strings</li>
+	 * <li><b>allowNull:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
 	 */
-	public function validates_numericality_of($attrs)
+	public function validatesNumericalityOf($attrs)
 	{
 		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('only_integer' => false));
 
@@ -318,7 +318,7 @@ class Validations
 
 			$numericalityOptions = array_intersect_key(self::$ALL_NUMERICALITY_CHECKS, $options);
 
-			if ($this->is_null_with_option($var, $options))
+			if ($this->isNullWithOption($var, $options))
 				continue;
 
 			$not_a_number_message = (isset($options['message']) ? $options['message'] : Errors::$DEFAULT_ERROR_MESSAGES['not_a_number']);
@@ -356,19 +356,19 @@ class Validations
 
 					$message = str_replace('%d', $option_value, $message);
 
-					if ('greater_than' == $option && !($var > $option_value))
+					if ('greaterThan' == $option && !($var > $option_value))
 						$this->record->add($attribute, $message);
 
-					elseif ('greater_than_or_equal_to' == $option && !($var >= $option_value))
+					elseif ('greaterThanOrEqualTo' == $option && !($var >= $option_value))
 						$this->record->add($attribute, $message);
 
-					elseif ('equal_to' == $option && !($var == $option_value))
+					elseif ('equalTo' == $option && !($var == $option_value))
 						$this->record->add($attribute, $message);
 
-					elseif ('less_than' == $option && !($var < $option_value))
+					elseif ('lessThan' == $option && !($var < $option_value))
 						$this->record->add($attribute, $message);
 
-					elseif ('less_than_or_equal_to' == $option && !($var <= $option_value))
+					elseif ('lessThanOrEqualTo' == $option && !($var <= $option_value))
 						$this->record->add($attribute, $message);
 				}
 				else
@@ -381,13 +381,13 @@ class Validations
 	}
 
 	/**
-	 * Alias of {@link validates_length_of}
+	 * Alias of {@link validatesLengthOf}
 	 *
 	 * @param array $attrs Validation definition
 	 */
-	public function validates_size_of($attrs)
+	public function validatesSizeOf($attrs)
 	{
-		$this->validates_length_of($attrs);
+		$this->validatesLengthOf($attrs);
 	}
 
 	/**
@@ -395,7 +395,7 @@ class Validations
 	 *
 	 * <code>
 	 * class Person extends ActiveRecord\Model {
-	 *   static $validates_format_of = array(
+	 *   static $validatesFormatOf = array(
 	 *     array('email', 'with' => '/^.*?@.*$/')
 	 *   );
 	 * }
@@ -406,13 +406,13 @@ class Validations
 	 * <ul>
 	 * <li><b>with:</b> a regular expression</li>
 	 * <li><b>message:</b> custom error message</li>
-	 * <li><b>allow_blank:</b> allow blank strings</li>
-	 * <li><b>allow_null:</b> allow null strings</li>
+	 * <li><b>allowBlank:</b> allow blank strings</li>
+	 * <li><b>allowNull:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
 	 */
-	public function validates_format_of($attrs)
+	public function validatesFormatOf($attrs)
 	{
 		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array('message' => Errors::$DEFAULT_ERROR_MESSAGES['invalid'], 'on' => 'save', 'with' => null));
 
@@ -427,7 +427,7 @@ class Validations
 			else
 				$expression = $options['with'];
 
-			if ($this->is_null_with_option($var, $options) || $this->is_blank_with_option($var, $options))
+			if ($this->isNullWithOption($var, $options) || $this->isBlankWithOption($var, $options))
 				continue;
 
 			if (!@preg_match($expression, $var))
@@ -440,7 +440,7 @@ class Validations
 	 *
 	 * <code>
 	 * class Person extends ActiveRecord\Model {
-	 *   static $validates_length_of = array(
+	 *   static $validatesLengthOf = array(
 	 *     array('name', 'within' => array(1,50))
 	 *   );
 	 * }
@@ -453,13 +453,13 @@ class Validations
 	 * <li><b>in/within:</b> attribute should be within an range array(min,max)</li>
 	 * <li><b>maximum/minimum:</b> attribute should not be above/below respectively</li>
 	 * <li><b>message:</b> custome error message</li>
-	 * <li><b>allow_blank:</b> allow blank strings</li>
-	 * <li><b>allow_null:</b> allow null strings. (Even if this is set to false, a null string is always shorter than a maximum value.)</li>
+	 * <li><b>allowBlank:</b> allow blank strings</li>
+	 * <li><b>allowNull:</b> allow null strings. (Even if this is set to false, a null string is always shorter than a maximum value.)</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
 	 */
-	public function validates_length_of($attrs)
+	public function validatesLengthOf($attrs)
 	{
 		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array(
 			'too_long'     => Errors::$DEFAULT_ERROR_MESSAGES['too_long'],
@@ -487,7 +487,7 @@ class Validations
 
 			$attribute = $options[0];
 			$var = $this->model->$attribute;
-			if ($this->is_null_with_option($var, $options) || $this->is_blank_with_option($var, $options))
+			if ($this->isNullWithOption($var, $options) || $this->isBlankWithOption($var, $options))
 				continue;
 			if ($range_options[0] == 'within' || $range_options[0] == 'in')
 			{
@@ -542,7 +542,7 @@ class Validations
 	 *
 	 * <code>
 	 * class Person extends ActiveRecord\Model {
-	 *   static $validates_uniqueness_of = array(
+	 *   static $validatesUniquenessOf = array(
 	 *     array('name'),
 	 *     array(array('blah','bleh'), 'message' => 'blech')
 	 *   );
@@ -554,13 +554,13 @@ class Validations
 	 * <ul>
 	 * <li><b>with:</b> a regular expression</li>
 	 * <li><b>message:</b> custom error message</li>
-	 * <li><b>allow_blank:</b> allow blank strings</li>
-	 * <li><b>allow_null:</b> allow null strings</li>
+	 * <li><b>allowBlank:</b> allow blank strings</li>
+	 * <li><b>allowNull:</b> allow null strings</li>
 	 * </ul>
 	 *
 	 * @param array $attrs Validation definition
 	 */
-	public function validates_uniqueness_of($attrs)
+	public function validatesUniquenessOf($attrs)
 	{
 		$configuration = array_merge(self::$DEFAULT_VALIDATION_OPTIONS, array(
 			'message' => Errors::$DEFAULT_ERROR_MESSAGES['unique']
@@ -611,14 +611,14 @@ class Validations
 		}
 	}
 
-	private function is_null_with_option($var, &$options)
+	private function isNullWithOption($var, &$options)
 	{
-		return (is_null($var) && (isset($options['allow_null']) && $options['allow_null']));
+		return (is_null($var) && (isset($options['allowNull']) && $options['allowNull']));
 	}
 
-	private function is_blank_with_option($var, &$options)
+	private function isBlankWithOption($var, &$options)
 	{
-		return (Utils::is_blank($var) && (isset($options['allow_blank']) && $options['allow_blank']));
+		return (Utils::is_blank($var) && (isset($options['allowBlank']) && $options['allowBlank']));
 	}
 }
 
@@ -645,14 +645,14 @@ class Errors implements IteratorAggregate
 		'wrong_length' => "is the wrong length (should be %d characters)",
 		'taken'        => "has already been taken",
 		'not_a_number' => "is not a number",
-		'greater_than' => "must be greater than %d",
-		'equal_to'     => "must be equal to %d",
-		'less_than'    => "must be less than %d",
+		'greaterThan' => "must be greater than %d",
+		'equalTo'     => "must be equal to %d",
+		'lessThan'    => "must be less than %d",
 		'odd'          => "must be odd",
 		'even'         => "must be even",
 		'unique'       => "must be unique",
-		'less_than_or_equal_to' => "must be less than or equal to %d",
-		'greater_than_or_equal_to' => "must be greater than or equal to %d"
+		'lessThanOrEqualTo' => "must be less than or equal to %d",
+		'greaterThanOrEqualTo' => "must be greater than or equal to %d"
 	);
 
 	/**
@@ -727,7 +727,7 @@ class Errors implements IteratorAggregate
 	 * @param string $attribute Name of an attribute on the model
 	 * @param string $msg The error message
 	 */
-	public function add_on_blank($attribute, $msg)
+	public function addOnBlank($attribute, $msg)
 	{
 		if (!$msg)
 			$msg = self::$DEFAULT_ERROR_MESSAGES['blank'];

@@ -90,7 +90,9 @@ abstract class AbstractRelationship implements InterfaceRelationship
 		elseif (isset($this->options['className']))
 			$this->setClassName($this->options['className']);
 
-		$this->attribute_name = strtolower(Inflector::instance()->variablize($this->attributeName));
+		
+
+		$this->attributeName = strtolower(Inflector::instance()->variablize($this->attributeName));
 
 		if (!$this->foreignKey && isset($this->options['foreignKey']))
 			$this->foreignKey = is_array($this->options['foreignKey']) ? $this->options['foreignKey'] : array($this->options['foreignKey']);
@@ -155,14 +157,14 @@ abstract class AbstractRelationship implements InterfaceRelationship
 
 			$this->setKeys($this->getTable()->class->getName(), true);
 
-			if (!isset($options['class_name'])) {
+			if (!isset($options['className'])) {
 				$class = classify($options['through'], true);
 				if (isset($this->options['namespace']) && !class_exists($class))
 					$class = $this->options['namespace'].'\\'.$class;
 
 				$throughTable = $class::table();
 			} else {
-				$class = $options['class_name'];
+				$class = $options['className'];
 				$relation = $class::table()->getRelationship($options['through']);
 				$throughTable = $relation->getTable();
 			}
@@ -271,12 +273,12 @@ abstract class AbstractRelationship implements InterfaceRelationship
 	}
 
 	/**
-	 * Infers the $this->class_name based on $this->attribute_name.
+	 * Infers the $this->className based on $this->attributeName.
 	 *
-	 * Will try to guess the appropriate class by singularizing and uppercasing $this->attribute_name.
+	 * Will try to guess the appropriate class by singularizing and uppercasing $this->attributeName.
 	 *
 	 * @return void
-	 * @see attribute_name
+	 * @see attributeName
 	 */
 	protected function setInferredClassName()
 	{
@@ -293,7 +295,7 @@ abstract class AbstractRelationship implements InterfaceRelationship
 		$reflection = Reflections::instance()->add($className)->get($className);
 
 		if (!$reflection->isSubClassOf('ActiveRecord\\Model'))
-			throw new RelationshipException("'$class_name' must extend from ActiveRecord\\Model");
+			throw new RelationshipException("'$className' must extend from ActiveRecord\\Model");
 
 		$this->className = $className;
 	}
@@ -473,7 +475,7 @@ class HasMany extends AbstractRelationship
 
 	protected function setKeys($modelClassName, $override=false)
 	{
-		//infer from class_name
+		//infer from className
 		if (!$this->foreignKey || $override)
 			$this->foreignKey = array(Inflector::instance()->keyify($modelClassName));
 
@@ -690,7 +692,7 @@ class BelongsTo extends AbstractRelationship
 		if (!$this->className)
 			$this->setInferredClassName();
 
-		//infer from class_name
+		//infer from className
 		if (!$this->foreignKey)
 			$this->foreignKey = array(Inflector::instance()->keyify($this->className));
 	}
